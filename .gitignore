@@ -1,32 +1,110 @@
-# Prerequisites
-*.d
+#include <iostream>
+using namespace std;
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+class Product {
+private:
+    static int staticId;
+    int _id;
+    const char* _name;
+    const char* _description;
+    double _price;
+    double _discount;
 
-# Precompiled Headers
-*.gch
-*.pch
+public:
+    Product(const char* name, const char* description, double price, double discount) {
+        _id = staticId++;
+        _name = name;
+        _description = description;
+        _price = price;
+        _discount = discount;
+    }
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+    int getId() const {
+        return _id;
+    }
 
-# Fortran module files
-*.mod
-*.smod
+    float getDiscountPrice() const {
+        return _price - ((_price * _discount) / 100);
+    }
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+    void ProductInfo() const {
+        cout << "Id          : " << _id << endl;
+        cout << "Name        : " << _name << endl;
+        cout << "Description : " << _description << endl;
+        cout << "Price       : " << _price << endl;
+        cout << "Discount    : " << _discount << " %" << endl;
+        cout << "Price with discount: " << getDiscountPrice() << endl;
+        cout << endl;
+    }
+};
 
-# Executables
-*.exe
-*.out
-*.app
+int Product::staticId = 1;
+
+class Stock {
+private:
+    const char* _name = nullptr;
+    Product** _products = nullptr;
+    size_t _count = 0;
+
+public:
+    Stock(const char* name) {
+        _name = name;
+    }
+
+    ~Stock() {
+        for (size_t i = 0; i < _count; ++i) {
+            delete _products[i];
+        }
+        delete[] _products;
+    }
+
+    void addProduct(Product* product) {
+        Product** temp = new Product * [_count + 1];
+        for (size_t i = 0; i < _count; ++i) {
+            temp[i] = _products[i];
+        }
+        temp[_count] = product;
+        delete[] _products;
+        _products = temp;
+        _count++;
+    }
+
+    void print() const {
+        cout << "Stock: " << _name << endl;
+        cout << "---------------------------" << endl;
+        for (size_t i = 0; i < _count; ++i) {
+            _products[i]->ProductInfo();
+        }
+    }
+
+    Product* getProductById(int id) const {
+        for (size_t i = 0; i < _count; ++i) {
+            if (_products[i]->getId() == id)
+                return _products[i];
+        }
+        return nullptr;
+    }
+};
+
+void main() {
+    Stock stock("Fruit Stock");
+
+    stock.addProduct(new Product("Apple", "Fresh", 5, 1));
+    stock.addProduct(new Product("Banana", "Fresh", 50, 1));
+    stock.addProduct(new Product("Pea", "Fresh", 25, 1));
+
+    stock.print();
+
+    int searchId = 0;
+    cout << "write id for found product:";
+    cin >> searchId;
+    Product* found = stock.getProductById(searchId);
+    if (found) {
+        cout << "Product with ID " << searchId << " found:" << endl;
+        found->ProductInfo();
+    }
+    else {
+        cout << "Product with ID " << searchId << " not found." << endl;
+    }
+
+}
